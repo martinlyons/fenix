@@ -1,0 +1,36 @@
+name: Build
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
+
+jobs:
+  job_1:
+    name: config-template
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      # Fetch Dependencies
+      - name: Dependencies / Build config-template.conf
+        run: |
+          sudo apt update
+          sudo apt install -y make lsb-release qemu-user-static zip
+          
+      # Build COMPRESS_IMAGE=yes
+      - name: Build
+        run: |
+          source env/setenv.sh config config-template.conf
+          make -j4
+     
+     # Upload to GH Actions Artifacts
+     #${{ github.workspace }}/build/images/*.img.xz
+      - name: 'Upload To GH Artifacts'
+        uses: actions/upload-artifact@v2
+        with:
+          name: 'firmware-Package'
+          path: |
+            ${{ github.workspace }}/build/images/*.img.xz
+            !${{ github.workspace }}/build/images/logo.img
+            !${{ github.workspace }}/build/images/rootfs.img
